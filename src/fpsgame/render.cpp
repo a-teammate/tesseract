@@ -8,7 +8,7 @@ namespace game
     VARP(ragdoll, 0, 1, 1);
     VARP(ragdollmillis, 0, 10000, 300000);
     VARP(ragdollfade, 0, 1000, 300000);
-    VARFP(playermodel, 0, 0, 4, changedplayermodel());
+    VARFP(playermodel, 0, 0, 0, changedplayermodel());
     VARP(forceplayermodels, 0, 0, 1);
     VARP(hidedead, 0, 0, 1);
 
@@ -46,14 +46,9 @@ namespace game
         }
     }
 
-    static const playermodelinfo playermodels[5] =
+    static const playermodelinfo playermodels[1] =
     {
-        { "mrfixit", "mrfixit/blue", "mrfixit/red", "mrfixit/hudguns", NULL, "mrfixit/horns", { "mrfixit/armor/blue", "mrfixit/armor/green", "mrfixit/armor/yellow" }, "mrfixit", "mrfixit_blue", "mrfixit_red", true },
-        { "snoutx10k", "snoutx10k/blue", "snoutx10k/red", "snoutx10k/hudguns", NULL, "snoutx10k/wings", { "snoutx10k/armor/blue", "snoutx10k/armor/green", "snoutx10k/armor/yellow" }, "snoutx10k", "snoutx10k_blue", "snoutx10k_red", true },
-        //{ "ogro/green", "ogro/blue", "ogro/red", "mrfixit/hudguns", "ogro/vwep", NULL, { NULL, NULL, NULL }, "ogro", "ogro_blue", "ogro_red", false },
-        { "ogro2", "ogro2/blue", "ogro2/red", "mrfixit/hudguns", NULL, "ogro2/quad", { "ogro2/armor/blue", "ogro2/armor/green", "ogro2/armor/yellow" }, "ogro", "ogro_blue", "ogro_red", true },
-        { "inky", "inky/blue", "inky/red", "inky/hudguns", NULL, "inky/quad", { "inky/armor/blue", "inky/armor/green", "inky/armor/yellow" }, "inky", "inky_blue", "inky_red", true },
-        { "captaincannon", "captaincannon/blue", "captaincannon/red", "captaincannon/hudguns", NULL, "captaincannon/quad", { "captaincannon/armor/blue", "captaincannon/armor/green", "captaincannon/armor/yellow" }, "captaincannon", "captaincannon_blue", "captaincannon_red", true }
+        { "player", "player/blue", "player/red", "player/hudguns", NULL, { "player/armor/blue", "player/armor/green", "player/armor/yellow" }, "player", "player_blue", "player_red", true }
     };
 
     int chooserandomplayermodel(int seed)
@@ -116,12 +111,10 @@ namespace game
             }
             else preloadmodel(mdl->ffa);
             if(mdl->vwep) preloadmodel(mdl->vwep);
-            if(mdl->quad) preloadmodel(mdl->quad);
             loopj(3) if(mdl->armour[j]) preloadmodel(mdl->armour[j]);
         }
     }
     
-    VAR(testquad, 0, 0, 1);
     VAR(testarmour, 0, 0, 1);
     VAR(testteam, 0, 0, 3);
 
@@ -156,8 +149,6 @@ namespace game
         }
         if(d->state==CS_ALIVE)
         {
-            if((testquad || d->quadmillis) && mdl.quad)
-                a[ai++] = modelattach("tag_powerup", mdl.quad, ANIM_POWERUP|ANIM_LOOP, 0);
             if(testarmour || d->armour)
             {
                 int type = clamp(d->armourtype, (int)A_BLUE, (int)A_YELLOW);
@@ -281,13 +272,6 @@ namespace game
         sway.add(swaydir).add(d->o);
         if(!hudgunsway) sway = d->o;
 
-#if 0
-        if(player1->state!=CS_DEAD && player1->quadmillis)
-        {
-            float t = 0.5f + 0.5f*sinf(2*M_PI*lastmillis/1000.0f);
-            color.y = color.y*(1-t) + t;
-        }
-#endif
         const playermodelinfo &mdl = getplayermodelinfo(d);
         defformatstring(gunname)("%s/%s", hudgunsdir[0] ? hudgunsdir : mdl.hudguns, guns[d->gunselect].file);
         if((m_teammode || teamskins) && teamhudguns)
@@ -401,7 +385,6 @@ namespace game
     {
         for(int i = S_JUMP; i <= S_SPLASH2; i++) preloadsound(i);
         for(int i = S_JUMPPAD; i <= S_PISTOL; i++) preloadsound(i);
-        for(int i = S_V_BOOST; i <= S_V_QUAD10; i++) preloadsound(i);
         for(int i = S_BURN; i <= S_HIT; i++) preloadsound(i);
     }
 

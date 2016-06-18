@@ -7,7 +7,7 @@ namespace aiman
 
     void calcteams(vector<teamscore> &teams)
     {
-        static const char * const defaults[2] = { "good", "evil" };
+        static const char * const defaults[2] = { "azul", "rojo" };
         loopv(clients)
         {
             clientinfo *ci = clients[i];

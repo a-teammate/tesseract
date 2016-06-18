@@ -23,20 +23,6 @@ It provides a bunch of new rendering features such as:
 * deferred MSAA/CSAA, subpixel morphological anti-aliasing (SMAA 1x, T2x, S2x, and 4x), FXAA, and temporal AA
 * runs on both OpenGL Core (3.0+) and legacy (2.1+) contexts
 
-Install:
-
-Currently, to use Tesseract you must have a copy of the "packages" directory
-from a recent checkout of Sauerbraten SVN. To get a copy of Sauerbraten SVN,
-please see the following page: http://sourceforge.net/p/sauerbraten/code
-
-If you are on Linux or other unixoid, just make a symlink to the Sauerbraten
-packages directory inside your Tesseract directory. You can also edit the
-tesseract_unix file to point to an existing Sauerbraten SVN checkout.
-
-On Windows, do a checkout of the Sauerbraten SVN inside the Tesseract directory,
-or edit the tesseract.bat file to point to an existing Sauerbraten SVN checkout
-you might have.
-
 Editing:
 
 To make shadowmapped point lights, just make light entities as normal. Optionally you can control the shadowing properties of the light using attribute 5: 0 = shadows, 1 = no shadows, 2 = static shadows - world and mapmodels only (no playermodels or pickups). Shadowmaps are cached from frame to frame if no dynamic entities such as playermodels are rendered into them, so static lights (2) will generally be much faster than normal lights (0) during gameplay and should be used where possible. Unshadowed lights (1) are even faster as they further reduce shading costs, so they should also be used where possible.

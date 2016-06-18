@@ -31,20 +31,11 @@ enum                            // static entity types
     MAPSOUND = ET_SOUND,
     SPOTLIGHT = ET_SPOTLIGHT,
     I_SHELLS, I_BULLETS, I_ROCKETS, I_ROUNDS, I_GRENADES, I_CARTRIDGES,
-    I_HEALTH, I_BOOST,
+    I_HEALTH,
     I_GREENARMOUR, I_YELLOWARMOUR,
-    I_QUAD,
     TELEPORT,                   // attr1 = idx, attr2 = model, attr3 = tag
     TELEDEST,                   // attr1 = angle, attr2 = idx
-    MONSTER,                    // attr1 = angle, attr2 = monstertype
-    CARROT,                     // attr1 = tag, attr2 = type
     JUMPPAD,                    // attr1 = zpush, attr2 = ypush, attr3 = xpush
-    BASE,
-    RESPAWNPOINT,
-    BOX,                        // attr1 = angle, attr2 = idx, attr3 = weight
-    BARREL,                     // attr1 = angle, attr2 = idx, attr3 = weight, attr4 = health
-    PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
-    ELEVATOR,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
     FLAG,                       // attr1 = angle, attr2 = team
     MAXENTTYPES
 };
@@ -53,9 +44,8 @@ struct fpsentity : extentity
 {
 };
 
-enum { GUN_FIST = 0, GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL, GUN_FIREBALL, GUN_ICEBALL, GUN_SLIMEBALL, GUN_BITE, GUN_BARREL, NUMGUNS };
+enum { GUN_FIST = 0, GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL, NUMGUNS };
 enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
-enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING };  // monster states
 
 enum
 {
@@ -64,21 +54,13 @@ enum
     M_NOAMMO     = 1<<2,
     M_INSTA      = 1<<3,
     M_EFFICIENCY = 1<<4,
-    M_TACTICS    = 1<<5,
-    M_CAPTURE    = 1<<6,
-    M_REGEN      = 1<<7,
-    M_CTF        = 1<<8,
-    M_PROTECT    = 1<<9,
-    M_HOLD       = 1<<10,
-    M_OVERTIME   = 1<<11,
-    M_EDIT       = 1<<12,
-    M_DEMO       = 1<<13,
-    M_LOCAL      = 1<<14,
-    M_LOBBY      = 1<<15,
-    M_DMSP       = 1<<16,
-    M_CLASSICSP  = 1<<17,
-    M_SLOWMO     = 1<<18,
-    M_COLLECT    = 1<<19
+    M_CTF        = 1<<5,
+    M_OVERTIME   = 1<<6,
+    M_EDIT       = 1<<7,
+    M_DEMO       = 1<<8,
+    M_LOCAL      = 1<<9,
+    M_LOBBY      = 1<<10,
+    M_COLLECT    = 1<<11
 };
 
 static struct gamemodeinfo
@@ -88,35 +70,23 @@ static struct gamemodeinfo
     const char *info;
 } gamemodes[] =
 {
-    { "SP", M_LOCAL | M_CLASSICSP, NULL },
-    { "DMSP", M_LOCAL | M_DMSP, NULL },
     { "demo", M_DEMO | M_LOCAL, NULL},
-    { "ffa", M_LOBBY, "Free For All: Collect items for ammo. Frag everyone to score points." },
     { "coop edit", M_EDIT, "Cooperative Editing: Edit maps with multiple players simultaneously." },
+    { "ffa", M_LOBBY, "Free For All: Collect items for ammo. Frag everyone to score points." },
     { "teamplay", M_TEAM, "Teamplay: Collect items for ammo. Frag \fs\f3the enemy team\fr to score points for \fs\f1your team\fr." },
     { "instagib", M_NOITEMS | M_INSTA, "Instagib: You spawn with full rifle ammo and die instantly from one shot. There are no items. Frag everyone to score points." },
     { "insta team", M_NOITEMS | M_INSTA | M_TEAM, "Instagib Team: You spawn with full rifle ammo and die instantly from one shot. There are no items. Frag \fs\f3the enemy team\fr to score points for \fs\f1your team\fr." },
     { "efficiency", M_NOITEMS | M_EFFICIENCY, "Efficiency: You spawn with all weapons and armour. There are no items. Frag everyone to score points." },
     { "effic team", M_NOITEMS | M_EFFICIENCY | M_TEAM, "Efficiency Team: You spawn with all weapons and armour. There are no items. Frag \fs\f3the enemy team\fr to score points for \fs\f1your team\fr." },
-    { "tactics", M_NOITEMS | M_TACTICS, "Tactics: You spawn with two random weapons and armour. There are no items. Frag everyone to score points." },
-    { "tac team", M_NOITEMS | M_TACTICS | M_TEAM, "Tactics Team: You spawn with two random weapons and armour. There are no items. Frag \fs\f3the enemy team\fr to score points for \fs\f1your team\fr." },
-    { "capture", M_NOAMMO | M_TACTICS | M_CAPTURE | M_TEAM, "Capture: Capture neutral bases or steal \fs\f3enemy bases\fr by standing next to them.  \fs\f1Your team\fr scores points for every 10 seconds it holds a base. You spawn with two random weapons and armour. Collect extra ammo that spawns at \fs\f1your bases\fr. There are no ammo items." },
-    { "regen capture", M_NOITEMS | M_CAPTURE | M_REGEN | M_TEAM, "Regen Capture: Capture neutral bases or steal \fs\f3enemy bases\fr by standing next to them. \fs\f1Your team\fr scores points for every 10 seconds it holds a base. Regenerate health and ammo by standing next to \fs\f1your bases\fr. There are no items." },
     { "ctf", M_CTF | M_TEAM, "Capture The Flag: Capture \fs\f3the enemy flag\fr and bring it back to \fs\f1your flag\fr to score points for \fs\f1your team\fr. Collect items for ammo." },
     { "insta ctf", M_NOITEMS | M_INSTA | M_CTF | M_TEAM, "Instagib Capture The Flag: Capture \fs\f3the enemy flag\fr and bring it back to \fs\f1your flag\fr to score points for \fs\f1your team\fr. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
-    { "protect", M_CTF | M_PROTECT | M_TEAM, "Protect The Flag: Touch \fs\f3the enemy flag\fr to score points for \fs\f1your team\fr. Pick up \fs\f1your flag\fr to protect it. \fs\f1Your team\fr loses points if a dropped flag resets. Collect items for ammo." },
-    { "insta protect", M_NOITEMS | M_INSTA | M_CTF | M_PROTECT | M_TEAM, "Instagib Protect The Flag: Touch \fs\f3the enemy flag\fr to score points for \fs\f1your team\fr. Pick up \fs\f1your flag\fr to protect it. \fs\f1Your team\fr loses points if a dropped flag resets. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
-    { "hold", M_CTF | M_HOLD | M_TEAM, "Hold The Flag: Hold \fs\f7the flag\fr for 20 seconds to score points for \fs\f1your team\fr. Collect items for ammo." },
-    { "insta hold", M_NOITEMS | M_INSTA | M_CTF | M_HOLD | M_TEAM, "Instagib Hold The Flag: Hold \fs\f7the flag\fr for 20 seconds to score points for \fs\f1your team\fr. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
     { "effic ctf", M_NOITEMS | M_EFFICIENCY | M_CTF | M_TEAM, "Efficiency Capture The Flag: Capture \fs\f3the enemy flag\fr and bring it back to \fs\f1your flag\fr to score points for \fs\f1your team\fr. You spawn with all weapons and armour. There are no items." },
-    { "effic protect", M_NOITEMS | M_EFFICIENCY | M_CTF | M_PROTECT | M_TEAM, "Efficiency Protect The Flag: Touch \fs\f3the enemy flag\fr to score points for \fs\f1your team\fr. Pick up \fs\f1your flag\fr to protect it. \fs\f1Your team\fr loses points if a dropped flag resets. You spawn with all weapons and armour. There are no items." },
-    { "effic hold", M_NOITEMS | M_EFFICIENCY | M_CTF | M_HOLD | M_TEAM, "Efficiency Hold The Flag: Hold \fs\f7the flag\fr for 20 seconds to score points for \fs\f1your team\fr. You spawn with all weapons and armour. There are no items." },
     { "collect", M_COLLECT | M_TEAM, "Skull Collector: Frag \fs\f3the enemy team\fr to drop \fs\f3skulls\fr. Collect them and bring them to \fs\f3the enemy base\fr to score points for \fs\f1your team\fr or steal back \fs\f1your skulls\fr. Collect items for ammo." },
     { "insta collect", M_NOITEMS | M_INSTA | M_COLLECT | M_TEAM, "Instagib Skull Collector: Frag \fs\f3the enemy team\fr to drop \fs\f3skulls\fr. Collect them and bring them to \fs\f3the enemy base\fr to score points for \fs\f1your team\fr or steal back \fs\f1your skulls\fr. You spawn with full rifle ammo and die instantly from one shot. There are no items." },
     { "effic collect", M_NOITEMS | M_EFFICIENCY | M_COLLECT | M_TEAM, "Efficiency Skull Collector: Frag \fs\f3the enemy team\fr to drop \fs\f3skulls\fr. Collect them and bring them to \fs\f3the enemy base\fr to score points for \fs\f1your team\fr or steal back \fs\f1your skulls\fr. You spawn with all weapons and armour. There are no items." }
 };
 
-#define STARTGAMEMODE (-3)
+#define STARTGAMEMODE (-1)
 #define NUMGAMEMODES ((int)(sizeof(gamemodes)/sizeof(gamemodes[0])))
 
 #define m_valid(mode)          ((mode) >= STARTGAMEMODE && (mode) < STARTGAMEMODE + NUMGAMEMODES)
@@ -127,13 +97,8 @@ static struct gamemodeinfo
 #define m_noitems      (m_check(gamemode, M_NOITEMS))
 #define m_noammo       (m_check(gamemode, M_NOAMMO|M_NOITEMS))
 #define m_insta        (m_check(gamemode, M_INSTA))
-#define m_tactics      (m_check(gamemode, M_TACTICS))
 #define m_efficiency   (m_check(gamemode, M_EFFICIENCY))
-#define m_capture      (m_check(gamemode, M_CAPTURE))
-#define m_regencapture (m_checkall(gamemode, M_CAPTURE | M_REGEN))
 #define m_ctf          (m_check(gamemode, M_CTF))
-#define m_protect      (m_checkall(gamemode, M_CTF | M_PROTECT))
-#define m_hold         (m_checkall(gamemode, M_CTF | M_HOLD))
 #define m_collect      (m_check(gamemode, M_COLLECT))
 #define m_teammode     (m_check(gamemode, M_TEAM))
 #define m_overtime     (m_check(gamemode, M_OVERTIME))
@@ -162,37 +127,20 @@ enum
     S_DIE1, S_DIE2,
     S_FLAUNCH, S_FEXPLODE,
     S_SPLASH1, S_SPLASH2,
-    S_GRUNT1, S_GRUNT2, S_RUMBLE,
-    S_PAINO,
-    S_PAINR, S_DEATHR,
-    S_PAINE, S_DEATHE,
-    S_PAINS, S_DEATHS,
-    S_PAINB, S_DEATHB,
-    S_PAINP, S_PIGGR2,
-    S_PAINH, S_DEATHH,
-    S_PAIND, S_DEATHD,
-    S_PIGR1, S_ICEBALL, S_SLIMEBALL,
     S_JUMPPAD, S_PISTOL,
-
-    S_V_BASECAP, S_V_BASELOST,
-    S_V_FIGHT,
-    S_V_BOOST, S_V_BOOST10,
-    S_V_QUAD, S_V_QUAD10,
-    S_V_RESPAWNPOINT,
 
     S_FLAGPICKUP,
     S_FLAGDROP,
     S_FLAGRETURN,
     S_FLAGSCORE,
     S_FLAGRESET,
+    S_FLAGFAIL,
 
     S_BURN,
     S_CHAINSAW_ATTACK,
     S_CHAINSAW_IDLE,
 
-    S_HIT,
-    
-    S_FLAGFAIL
+    S_HIT
 };
 
 // network messages codes, c2s, c2c, s2c
@@ -212,10 +160,9 @@ enum
     N_SERVMSG, N_ITEMLIST, N_RESUME,
     N_EDITMODE, N_EDITENT, N_EDITF, N_EDITT, N_EDITM, N_FLIP, N_COPY, N_PASTE, N_ROTATE, N_REPLACE, N_DELCUBE, N_REMIP, N_NEWMAP, N_GETMAP, N_SENDMAP, N_CLIPBOARD, N_EDITVAR,
     N_MASTERMODE, N_KICK, N_CLEARBANS, N_CURRENTMASTER, N_SPECTATOR, N_SETMASTER, N_SETTEAM,
-    N_BASES, N_BASEINFO, N_BASESCORE, N_REPAMMO, N_BASEREGEN, N_ANNOUNCE,
     N_LISTDEMOS, N_SENDDEMOLIST, N_GETDEMO, N_SENDDEMO,
     N_DEMOPLAYBACK, N_RECORDDEMO, N_STOPDEMO, N_CLEARDEMOS,
-    N_TAKEFLAG, N_RETURNFLAG, N_RESETFLAG, N_INVISFLAG, N_TRYDROPFLAG, N_DROPFLAG, N_SCOREFLAG, N_INITFLAGS,
+    N_TAKEFLAG, N_RETURNFLAG, N_RESETFLAG, N_TRYDROPFLAG, N_DROPFLAG, N_SCOREFLAG, N_INITFLAGS,
     N_SAYTEAM,
     N_CLIENT,
     N_AUTHTRY, N_AUTHKICK, N_AUTHCHAL, N_AUTHANS, N_REQAUTH,
@@ -242,10 +189,9 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     N_SERVMSG, 0, N_ITEMLIST, 0, N_RESUME, 0,
     N_EDITMODE, 2, N_EDITENT, 11, N_EDITF, 16, N_EDITT, 16, N_EDITM, 16, N_FLIP, 14, N_COPY, 14, N_PASTE, 14, N_ROTATE, 15, N_REPLACE, 17, N_DELCUBE, 14, N_REMIP, 1, N_NEWMAP, 2, N_GETMAP, 1, N_SENDMAP, 0, N_EDITVAR, 0,
     N_MASTERMODE, 2, N_KICK, 0, N_CLEARBANS, 1, N_CURRENTMASTER, 0, N_SPECTATOR, 3, N_SETMASTER, 0, N_SETTEAM, 0,
-    N_BASES, 0, N_BASEINFO, 0, N_BASESCORE, 0, N_REPAMMO, 1, N_BASEREGEN, 6, N_ANNOUNCE, 2,
     N_LISTDEMOS, 1, N_SENDDEMOLIST, 0, N_GETDEMO, 2, N_SENDDEMO, 0,
     N_DEMOPLAYBACK, 3, N_RECORDDEMO, 2, N_STOPDEMO, 1, N_CLEARDEMOS, 2,
-    N_TAKEFLAG, 3, N_RETURNFLAG, 4, N_RESETFLAG, 6, N_INVISFLAG, 3, N_TRYDROPFLAG, 1, N_DROPFLAG, 7, N_SCOREFLAG, 10, N_INITFLAGS, 0,
+    N_TAKEFLAG, 3, N_RETURNFLAG, 4, N_RESETFLAG, 3, N_TRYDROPFLAG, 1, N_DROPFLAG, 7, N_SCOREFLAG, 9, N_INITFLAGS, 0,
     N_SAYTEAM, 0,
     N_CLIENT, 0,
     N_AUTHTRY, 0, N_AUTHKICK, 0, N_AUTHCHAL, 0, N_AUTHANS, 0, N_REQAUTH, 0,
@@ -316,10 +262,8 @@ static struct itemstat { int add, max, sound; const char *name; int icon, info; 
     {10,    30,    S_ITEMAMMO,   "GL", HICON_GL, GUN_GL},
     {30,    120,   S_ITEMAMMO,   "PI", HICON_PISTOL, GUN_PISTOL},
     {25,    100,   S_ITEMHEALTH, "H", HICON_HEALTH},
-    {10,    1000,  S_ITEMHEALTH, "MH", HICON_HEALTH},
     {100,   100,   S_ITEMARMOUR, "GA", HICON_GREEN_ARMOUR, A_GREEN},
-    {200,   200,   S_ITEMARMOUR, "YA", HICON_YELLOW_ARMOUR, A_YELLOW},
-    {20000, 30000, S_ITEMPUP,    "Q", HICON_QUAD},
+    {200,   200,   S_ITEMARMOUR, "YA", HICON_YELLOW_ARMOUR, A_YELLOW}
 };
 
 #define MAXRAYS 20
@@ -327,20 +271,15 @@ static struct itemstat { int add, max, sound; const char *name; int icon, info; 
 #define EXP_SELFPUSH 2.5f
 #define EXP_DISTSCALE 1.5f
 
-static const struct guninfo { int sound, attackdelay, damage, spread, projspeed, kickamount, range, rays, hitpush, exprad, ttl; const char *name, *file; short part; } guns[NUMGUNS] =
+static const struct guninfo { int sound, attackdelay, damage, spread, projspeed, kickamount, range, rays, hitpush, exprad, ttl; const char *name, *file; } guns[NUMGUNS] =
 {
-    { S_PUNCH1,    250,  50,   0,   0,  0,   14,  1,  80,  0,    0, "fist",            "fist",   0 },
-    { S_SG,       1400,  10, 400,   0, 20, 1024, 20,  80,  0,    0, "shotgun",         "shotg",  0 },
-    { S_CG,        100,  30, 100,   0,  7, 1024,  1,  80,  0,    0, "chaingun",        "chaing", 0 },
-    { S_RLFIRE,    800, 120,   0, 320, 10, 1024,  1, 160, 40,    0, "rocketlauncher",  "rocket", 0 },
-    { S_RIFLE,    1500, 100,   0,   0, 30, 2048,  1,  80,  0,    0, "rifle",           "rifle",  0 },
-    { S_FLAUNCH,   600,  90,   0, 200, 10, 1024,  1, 250, 45, 1500, "grenadelauncher", "gl",     0 },
-    { S_PISTOL,    500,  35,  50,   0,  7, 1024,  1,  80,  0,    0, "pistol",          "pistol", 0 },
-    { S_FLAUNCH,   200,  20,   0, 200,  1, 1024,  1,  80, 40,    0, "fireball",        NULL,     PART_FIREBALL1 },
-    { S_ICEBALL,   200,  40,   0, 120,  1, 1024,  1,  80, 40,    0, "iceball",         NULL,     PART_FIREBALL2 },
-    { S_SLIMEBALL, 200,  30,   0, 640,  1, 1024,  1,  80, 40,    0, "slimeball",       NULL,     PART_FIREBALL3 },
-    { S_PIGR1,     250,  50,   0,   0,  1,   12,  1,  80,  0,    0, "bite",            NULL,     0 },
-    { -1,            0, 120,   0,   0,  0,    0,  1,  80, 40,    0, "barrel",          NULL,     0 }
+    { S_PUNCH1,    250,  50,   0,   0,  0,   14,  1,  80,  0,    0, "fist",            "fist"   },
+    { S_SG,       1400,  10, 400,   0, 20, 1024, 20,  80,  0,    0, "shotgun",         "shotg"  },
+    { S_CG,        100,  30, 100,   0,  7, 1024,  1,  80,  0,    0, "chaingun",        "chaing" },
+    { S_RLFIRE,    800, 120,   0, 320, 10, 1024,  1, 160, 40,    0, "rocketlauncher",  "rocket" },
+    { S_RIFLE,    1500, 100,   0,   0, 30, 2048,  1,  80,  0,    0, "rifle",           "rifle"  },
+    { S_FLAUNCH,   600,  90,   0, 200, 10, 1024,  1, 250, 45, 1500, "grenadelauncher", "gl"     },
+    { S_PISTOL,    500,  35,  50,   0,  7, 1024,  1,  80,  0,    0, "pistol",          "pistol" }
 };
 
 #include "ai.h"
@@ -350,7 +289,6 @@ struct fpsstate
 {
     int health, maxhealth;
     int armour, armourtype;
-    int quadmillis;
     int gunselect, gunwait;
     int ammo[NUMGUNS];
     int aitype, skill;
@@ -376,39 +314,32 @@ struct fpsstate
 
     bool canpickup(int type)
     {
-        if(type<I_SHELLS || type>I_QUAD) return false;
+        if(type<I_SHELLS || type>I_YELLOWARMOUR) return false;
         itemstat &is = itemstats[type-I_SHELLS];
         switch(type)
         {
-            case I_BOOST: return maxhealth<is.max;
             case I_HEALTH: return health<maxhealth;
             case I_GREENARMOUR:
                 // (100h/100g only absorbs 200 damage)
                 if(armourtype==A_YELLOW && armour>=100) return false;
             case I_YELLOWARMOUR: return !armourtype || armour<is.max;
-            case I_QUAD: return quadmillis<is.max;
             default: return ammo[is.info]<is.max;
         }
     }
 
     void pickup(int type)
     {
-        if(type<I_SHELLS || type>I_QUAD) return;
+        if(type<I_SHELLS || type>I_YELLOWARMOUR) return;
         itemstat &is = itemstats[type-I_SHELLS];
         switch(type)
         {
-            case I_BOOST:
-                maxhealth = min(maxhealth+is.add, is.max);
-            case I_HEALTH: // boost also adds to health
+            case I_HEALTH:
                 health = min(health+is.add, maxhealth);
                 break;
             case I_GREENARMOUR:
             case I_YELLOWARMOUR:
                 armour = min(armour+is.add, is.max);
                 armourtype = is.info;
-                break;
-            case I_QUAD:
-                quadmillis = min(quadmillis+is.add, is.max);
                 break;
             default:
                 ammo[is.info] = min(ammo[is.info]+is.add, is.max);
@@ -421,7 +352,6 @@ struct fpsstate
         health = maxhealth;
         armour = 0;
         armourtype = A_BLUE;
-        quadmillis = 0;
         gunselect = GUN_PISTOL;
         gunwait = 0;
         loopi(NUMGUNS) ammo[i] = 0;
@@ -440,26 +370,6 @@ struct fpsstate
             health = 1;
             gunselect = GUN_RIFLE;
             ammo[GUN_RIFLE] = 100;
-        }
-        else if(m_regencapture)
-        {
-            armourtype = A_BLUE;
-            armour = 25;
-            gunselect = GUN_PISTOL;
-            ammo[GUN_PISTOL] = 40;
-            ammo[GUN_GL] = 1;
-        }
-        else if(m_tactics)
-        {
-            armourtype = A_GREEN;
-            armour = 100;
-            ammo[GUN_PISTOL] = 40;
-            int spawngun1 = rnd(5)+1, spawngun2;
-            gunselect = spawngun1;
-            baseammo(spawngun1, m_noitems ? 2 : 1);
-            do spawngun2 = rnd(5)+1; while(spawngun1==spawngun2);
-            baseammo(spawngun2, m_noitems ? 2 : 1);
-            if(m_noitems) ammo[GUN_GL] += 1;
         }
         else if(m_efficiency)
         {
@@ -619,7 +529,6 @@ namespace entities
     extern void preloadentities();
     extern void renderentities();
     extern void checkitems(fpsent *d);
-    extern void checkquad(int time, fpsent *d);
     extern void resetspawns();
     extern void spawnitems(bool force = false);
     extern void putitems(packetbuf &p);
@@ -754,7 +663,7 @@ namespace game
     struct playermodelinfo
     {
         const char *ffa, *blueteam, *redteam, *hudguns,
-                   *vwep, *quad, *armour[3],
+                   *vwep, *armour[3],
                    *ffaicon, *blueicon, *redicon;
         bool ragdoll;
     };

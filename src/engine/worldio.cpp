@@ -22,11 +22,11 @@ void getmapfilenames(const char *fname, const char *cname, char *pakname, char *
     }
     else
     {
-        copystring(pakname, "base");
+        copystring(pakname, "map");
         copystring(cfgname, name);
     }
     if(strpbrk(fname, "/\\")) copystring(mapname, fname);
-    else formatstring(mapname)("base/%s", fname);
+    else formatstring(mapname)("map/%s", fname);
     cutogz(mapname);
 }   
 
@@ -38,7 +38,7 @@ bool loadents(const char *fname, vector<entity> &ents, uint *crc)
 {
     string pakname, mapname, mcfgname, ogzname;
     getmapfilenames(fname, NULL, pakname, mapname, mcfgname);
-    formatstring(ogzname)("packages/%s.ogz", mapname);
+    formatstring(ogzname)("media/%s.ogz", mapname);
     path(ogzname);
     stream *f = opengzfile(ogzname, "rb");
     if(!f) return false;
@@ -121,11 +121,11 @@ void setmapfilenames(const char *fname, const char *cname = 0)
     string pakname, mapname, mcfgname;
     getmapfilenames(fname, cname, pakname, mapname, mcfgname);
 
-    formatstring(ogzname)("packages/%s.ogz", mapname);
-    if(savebak==1) formatstring(bakname)("packages/%s.BAK", mapname);
-    else formatstring(bakname)("packages/%s_%d.BAK", mapname, totalmillis);
-    formatstring(cfgname)("packages/%s/%s.cfg", pakname, mcfgname);
-    formatstring(picname)("packages/%s.jpg", mapname);
+    formatstring(ogzname)("media/%s.ogz", mapname);
+    if(savebak==1) formatstring(bakname)("media/%s.BAK", mapname);
+    else formatstring(bakname)("media/%s_%d.BAK", mapname, totalmillis);
+    formatstring(cfgname)("media/%s/%s.cfg", pakname, mcfgname);
+    formatstring(picname)("media/%s.jpg", mapname);
 
     path(ogzname);
     path(bakname);
@@ -140,7 +140,7 @@ void mapcfgname()
 
     string pakname, mapname, mcfgname;
     getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
-    defformatstring(cfgname)("packages/%s/%s.cfg", pakname, mcfgname);
+    defformatstring(cfgname)("media/%s/%s.cfg", pakname, mcfgname);
     path(cfgname);
     result(cfgname);
 }
@@ -866,7 +866,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     clearmainmenu();
 
     identflags |= IDF_OVERRIDDEN;
-    execfile("data/default_map_settings.cfg", false);
+    execfile("config/default_map_settings.cfg", false);
     execfile(cfgname, false);
     identflags &= ~IDF_OVERRIDDEN;
    
@@ -989,7 +989,7 @@ void writeobj(char *name)
     {
         VSlot &vslot = lookupvslot(usedmtl[i], false);
         f->printf("newmtl slot%d\n", usedmtl[i]);
-        f->printf("map_Kd %s\n", vslot.slot->sts.empty() ? notexture->name : path(makerelpath("packages", vslot.slot->sts[0].name)));
+        f->printf("map_Kd %s\n", vslot.slot->sts.empty() ? notexture->name : path(makerelpath("media", vslot.slot->sts[0].name)));
         f->printf("\n");
     } 
     delete f;

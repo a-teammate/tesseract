@@ -192,7 +192,6 @@ namespace game
             else if(!intermission)
             {
                 if(lastmillis - d->lastaction >= d->gunwait) d->gunwait = 0;
-                if(d->quadmillis) entities::checkquad(curtime, d);
             }
 
             const int lagtime = totalmillis-d->lastupdate;
@@ -219,10 +218,6 @@ namespace game
 
         physicsframe();
         ai::navigate();
-        if(player1->state != CS_DEAD && !intermission)
-        {
-            if(player1->quadmillis) entities::checkquad(curtime, player1);
-        }
         updateweapons(curtime);
         otherplayers(curtime);
         ai::update();
@@ -671,11 +666,11 @@ namespace game
     }
     ICOMMAND(kill, "", (), suicide(player1));
 
-    bool needminimap() { return m_ctf || m_protect || m_hold || m_capture || m_collect; }
+    bool needminimap() { return m_ctf || m_collect; }
 
     void drawicon(int icon, float x, float y, float sz)
     {
-        settexture("packages/hud/items.png");
+        settexture("media/hud/items.png");
         float tsz = 0.25f, tx = tsz*(icon%4), ty = tsz*(icon/4);
         gle::defvertex(2);
         gle::deftexcoord0();
@@ -781,7 +776,6 @@ namespace game
         {
             if(d->armour) drawicon(HICON_BLUE_ARMOUR+d->armourtype, HICON_X + HICON_STEP, HICON_Y);
             drawicon(HICON_FIST+d->gunselect, HICON_X + 2*HICON_STEP, HICON_Y);
-            if(d->quadmillis) drawicon(HICON_QUAD, HICON_X + 3*HICON_STEP, HICON_Y);
             if(ammohud) drawammohud(d);
         }
     }
@@ -837,9 +831,9 @@ namespace game
     {
         switch(index)
         {
-            case 2: return "data/hit.png";
-            case 1: return "data/teammate.png";
-            default: return "data/crosshair.png";
+            case 2: return "media/interface/crosshair/default_hit.png";
+            case 1: return "media/interface/crosshair/default_teammate.png";
+            default: return "media/interface/crosshair/default_normal.png";
         }
     }
 
@@ -869,18 +863,6 @@ namespace game
         }
         if(d->gunwait) { r *= 0.5f; g *= 0.5f; b *= 0.5f; }
         return crosshair;
-    }
-
-    void lighteffects(dynent *e, vec &color, vec &dir)
-    {
-#if 0
-        fpsent *d = (fpsent *)e;
-        if(d->state!=CS_DEAD && d->quadmillis)
-        {
-            float t = 0.5f + 0.5f*sinf(2*M_PI*lastmillis/1000.0f);
-            color.y = color.y*(1-t) + t;
-        }
-#endif
     }
 
     bool serverinfostartcolumn(g3d_gui *g, int i)
@@ -1007,15 +989,15 @@ namespace game
     void writegamedata(vector<char> &extras) {}
     void readgamedata(vector<char> &extras) {}
 
-    const char *savedconfig() { return "config.cfg"; }
-    const char *restoreconfig() { return "restore.cfg"; }
-    const char *defaultconfig() { return "data/defaults.cfg"; }
-    const char *autoexec() { return "autoexec.cfg"; }
-    const char *savedservers() { return "servers.cfg"; }
+    const char *savedconfig() { return "config/config.cfg"; }
+    const char *restoreconfig() { return "config/restore.cfg"; }
+    const char *defaultconfig() { return "config/default.cfg"; }
+    const char *autoexec() { return "config/autoexec.cfg"; }
+    const char *savedservers() { return "config/servers.cfg"; }
 
     void loadconfigs()
     {
-        execfile("auth.cfg", false);
+        execfile("config/auth.cfg", false);
     }
 }
 

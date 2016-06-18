@@ -25,14 +25,14 @@ namespace entities
     const char *itemname(int i)
     {
         int t = ents[i]->type;
-        if(t<I_SHELLS || t>I_QUAD) return NULL;
+        if(t<I_SHELLS || t>I_YELLOWARMOUR) return NULL;
         return itemstats[t-I_SHELLS].name;
     }
 
     int itemicon(int i)
     {
         int t = ents[i]->type;
-        if(t<I_SHELLS || t>I_QUAD) return -1;
+        if(t<I_SHELLS || t>I_YELLOWARMOUR) return -1;
         return itemstats[t-I_SHELLS].icon;
     }
 
@@ -42,13 +42,8 @@ namespace entities
         {
             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
             "ammo/shells", "ammo/bullets", "ammo/rockets", "ammo/rrounds", "ammo/grenades", "ammo/cartridges",
-            "health", "boost", "armor/green", "armor/yellow", "quad", "teleporter",
-            NULL, NULL,
-            "carrot",
-            NULL, NULL,
-            "checkpoint",
-            NULL, NULL,
-            NULL, NULL,
+            "health", "armor/green", "armor/yellow", "teleport",
+            NULL, NULL, NULL,
             NULL
         };
         return entmdlnames[type];
@@ -73,7 +68,7 @@ namespace entities
                 case I_SHELLS: case I_BULLETS: case I_ROCKETS: case I_ROUNDS: case I_GRENADES: case I_CARTRIDGES:
                     if(m_noammo) continue;
                     break;
-                case I_HEALTH: case I_BOOST: case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD:
+                case I_HEALTH: case I_GREENARMOUR: case I_YELLOWARMOUR:
                     if(m_noitems) continue;
                     break;
             }
@@ -107,7 +102,7 @@ namespace entities
                     if(e.attr2 < 0) continue;
                     break;
                 default:
-                    if(!e.spawned || e.type < I_SHELLS || e.type > I_QUAD) continue;
+                    if(!e.spawned || e.type < I_SHELLS || e.type > I_YELLOWARMOUR) continue;
                     break;
             }
             const char *mdlname = entmodel(e);
@@ -140,7 +135,7 @@ namespace entities
     {
         if(!ents.inrange(n)) return;
         int type = ents[n]->type;
-        if(type<I_SHELLS || type>I_QUAD) return;
+        if(type<I_SHELLS || type>I_YELLOWARMOUR) return;
         ents[n]->spawned = false;
         if(!d) return;
         itemstat &is = itemstats[type-I_SHELLS];
@@ -151,18 +146,11 @@ namespace entities
         }
         playsound(itemstats[type-I_SHELLS].sound, d!=player1 ? &d->o : NULL, NULL, 0, 0, 0, -1, 0, 1500);
         d->pickup(type);
+#if 0
         if(d==player1) switch(type)
         {
-            case I_BOOST:
-                conoutf(CON_GAMEINFO, "\f2you have a permanent +10 health bonus! (%d)", d->maxhealth);
-                playsound(S_V_BOOST, NULL, NULL, 0, 0, 0, -1, 0, 3000);
-                break;
-
-            case I_QUAD:
-                conoutf(CON_GAMEINFO, "\f2you got the quad!");
-                playsound(S_V_QUAD, NULL, NULL, 0, 0, 0, -1, 0, 3000);
-                break;
         }
+#endif
     }
 
     // these functions are called when the client touches the item
@@ -309,20 +297,10 @@ namespace entities
         }
     }
 
-    void checkquad(int time, fpsent *d)
-    {
-        if(d->quadmillis && (d->quadmillis -= time)<=0)
-        {
-            d->quadmillis = 0;
-            playsound(S_PUPOUT, d==player1 ? NULL : &d->o);
-            if(d==player1) conoutf(CON_GAMEINFO, "\f2quad damage is over");
-        }
-    }
-
     void putitems(packetbuf &p)            // puts items in network stream and also spawns them locally
     {
         putint(p, N_ITEMLIST);
-        loopv(ents) if(ents[i]->type>=I_SHELLS && ents[i]->type<=I_QUAD && (!m_noammo || ents[i]->type<I_SHELLS || ents[i]->type>I_CARTRIDGES))
+        loopv(ents) if(ents[i]->type>=I_SHELLS && ents[i]->type<=I_YELLOWARMOUR && (!m_noammo || ents[i]->type<I_SHELLS || ents[i]->type>I_CARTRIDGES))
         {
             putint(p, i);
             putint(p, ents[i]->type);
@@ -335,7 +313,7 @@ namespace entities
     void spawnitems(bool force)
     {
         if(m_noitems) return;
-        loopv(ents) if(ents[i]->type>=I_SHELLS && ents[i]->type<=I_QUAD && (!m_noammo || ents[i]->type<I_SHELLS || ents[i]->type>I_CARTRIDGES))
+        loopv(ents) if(ents[i]->type>=I_SHELLS && ents[i]->type<=I_YELLOWARMOUR && (!m_noammo || ents[i]->type<I_SHELLS || ents[i]->type>I_CARTRIDGES))
         {
             ents[i]->spawned = force || !server::delayspawn(ents[i]->type);
         }
@@ -410,14 +388,11 @@ namespace entities
         {
             "none?", "light", "mapmodel", "playerstart", "envmap", "particles", "sound", "spotlight",
             "shells", "bullets", "rockets", "riflerounds", "grenades", "cartridges",
-            "health", "healthboost", "greenarmour", "yellowarmour", "quaddamage",
+            "health", "greenarmour", "yellowarmour",
             "teleport", "teledest",
-            "monster", "carrot", "jumppad",
-            "base", "respawnpoint",
-            "box", "barrel",
-            "platform", "elevator",
+            "jumppad",
             "flag",
-            "", "", "", "",
+            ""
         };
         return i>=0 && size_t(i)<sizeof(entnames)/sizeof(entnames[0]) ? entnames[i] : "";
     }
@@ -431,7 +406,7 @@ namespace entities
 
     float dropheight(entity &e)
     {
-        if(e.type==BASE || e.type==FLAG) return 0.0f;
+        if(e.type==FLAG) return 0.0f;
         return 4.0f;
     }
 #endif

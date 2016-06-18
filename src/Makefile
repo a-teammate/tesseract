@@ -423,7 +423,7 @@ fpsgame/ai.o: shared/iengine.h shared/igame.h fpsgame/ai.h
 fpsgame/client.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/client.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/client.o: shared/glemu.h shared/iengine.h shared/igame.h fpsgame/ai.h
-fpsgame/client.o: fpsgame/capture.h fpsgame/ctf.h fpsgame/collect.h
+fpsgame/client.o: fpsgame/ctf.h fpsgame/collect.h
 fpsgame/entities.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/entities.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/entities.o: shared/glemu.h shared/iengine.h shared/igame.h
@@ -441,8 +441,8 @@ fpsgame/scoreboard.o: shared/igame.h fpsgame/ai.h
 fpsgame/server.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/server.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/server.o: shared/glemu.h shared/iengine.h shared/igame.h fpsgame/ai.h
-fpsgame/server.o: fpsgame/capture.h fpsgame/ctf.h fpsgame/collect.h
-fpsgame/server.o: fpsgame/extinfo.h fpsgame/aiman.h
+fpsgame/server.o: fpsgame/ctf.h fpsgame/collect.h fpsgame/extinfo.h
+fpsgame/server.o: fpsgame/aiman.h
 fpsgame/waypoint.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/waypoint.o: shared/ents.h shared/command.h shared/glexts.h
 fpsgame/waypoint.o: shared/glemu.h shared/iengine.h shared/igame.h
@@ -487,9 +487,8 @@ fpsgame/entities-standalone.o: shared/iengine.h shared/igame.h fpsgame/ai.h
 fpsgame/server-standalone.o: fpsgame/game.h shared/cube.h shared/tools.h
 fpsgame/server-standalone.o: shared/geom.h shared/ents.h shared/command.h
 fpsgame/server-standalone.o: shared/iengine.h shared/igame.h fpsgame/ai.h
-fpsgame/server-standalone.o: fpsgame/capture.h fpsgame/ctf.h
-fpsgame/server-standalone.o: fpsgame/collect.h fpsgame/extinfo.h
-fpsgame/server-standalone.o: fpsgame/aiman.h
+fpsgame/server-standalone.o: fpsgame/ctf.h fpsgame/collect.h
+fpsgame/server-standalone.o: fpsgame/extinfo.h fpsgame/aiman.h
 
 engine/master-standalone.o: shared/cube.h shared/tools.h shared/geom.h
 engine/master-standalone.o: shared/ents.h shared/command.h shared/iengine.h

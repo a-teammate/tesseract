@@ -842,16 +842,14 @@ namespace server
     };
 
     #define SERVMODE 1
-    #include "capture.h"
     #include "ctf.h"
     #include "collect.h"
 
-    captureservmode capturemode;
     ctfservmode ctfmode;
     collectservmode collectmode;
     servmode *smode = NULL;
 
-    bool canspawnitem(int type) { return !m_noitems && (type>=I_SHELLS && type<=I_QUAD && (!m_noammo || type<I_SHELLS || type>I_CARTRIDGES)); }
+    bool canspawnitem(int type) { return !m_noitems && (type>=I_SHELLS && type<=I_YELLOWARMOUR && (!m_noammo || type<I_SHELLS || type>I_CARTRIDGES)); }
 
     int spawntime(int type)
     {
@@ -869,8 +867,6 @@ namespace server
             case I_HEALTH: sec = np*5; break;
             case I_GREENARMOUR: sec = 20; break;
             case I_YELLOWARMOUR: sec = 30; break;
-            case I_BOOST: sec = 60; break;
-            case I_QUAD: sec = 70; break;
         }
         return sec*1000;
     }
@@ -881,9 +877,6 @@ namespace server
         {
             case I_GREENARMOUR:
             case I_YELLOWARMOUR:
-                return true;
-            case I_BOOST:
-            case I_QUAD:
                 return true;
             default:
                 return false;
@@ -949,7 +942,7 @@ namespace server
 
     void autoteam()
     {
-        static const char * const teamnames[2] = {"good", "evil"};
+        static const char * const teamnames[2] = {"azul", "rojo"};
         vector<clientinfo *> team[2];
         float teamrank[2] = {0, 0};
         for(int round = 0, remaining = clients.length(); remaining>=0; round++)
@@ -995,7 +988,7 @@ namespace server
 
     const char *chooseworstteam(const char *suggest = NULL, clientinfo *exclude = NULL)
     {
-        teamrank teamranks[2] = { teamrank("good"), teamrank("evil") };
+        teamrank teamranks[2] = { teamrank("azul"), teamrank("rojo") };
         const int numteams = sizeof(teamranks)/sizeof(teamranks[0]);
         loopv(clients)
         {
@@ -1505,7 +1498,7 @@ namespace server
         // only allow edit messages in coop-edit mode
         if(type>=N_EDITENT && type<=N_EDITVAR && !m_edit) return -1;
         // server only messages
-        static const int servtypes[] = { N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_DAMAGE, N_HITPUSH, N_SHOTFX, N_EXPLODEFX, N_DIED, N_SPAWNSTATE, N_FORCEDEATH, N_TEAMINFO, N_ITEMACC, N_ITEMSPAWN, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_BASESCORE, N_BASEINFO, N_BASEREGEN, N_ANNOUNCE, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_DROPFLAG, N_SCOREFLAG, N_RETURNFLAG, N_RESETFLAG, N_INVISFLAG, N_CLIENT, N_AUTHCHAL, N_INITAI, N_EXPIRETOKENS, N_DROPTOKENS, N_STEALTOKENS, N_DEMOPACKET };
+        static const int servtypes[] = { N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_DAMAGE, N_HITPUSH, N_SHOTFX, N_EXPLODEFX, N_DIED, N_SPAWNSTATE, N_FORCEDEATH, N_TEAMINFO, N_ITEMACC, N_ITEMSPAWN, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_DROPFLAG, N_SCOREFLAG, N_RETURNFLAG, N_RESETFLAG, N_CLIENT, N_AUTHCHAL, N_INITAI, N_EXPIRETOKENS, N_DROPTOKENS, N_STEALTOKENS, N_DEMOPACKET };
         if(ci) 
         {
             loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
@@ -1863,7 +1856,6 @@ namespace server
                 putint(p, oi->state.state);
                 putint(p, oi->state.frags);
                 putint(p, oi->state.flags);
-                putint(p, oi->state.quadmillis);
                 sendstate(oi->state, p);
             }
             putint(p, -1);
@@ -1888,8 +1880,8 @@ namespace server
     void sendresume(clientinfo *ci)
     {
         gamestate &gs = ci->state;
-        sendf(-1, 1, "ri3i9vi", N_RESUME, ci->clientnum,
-            gs.state, gs.frags, gs.flags, gs.quadmillis,
+        sendf(-1, 1, "ri3i8vi", N_RESUME, ci->clientnum,
+            gs.state, gs.frags, gs.flags,
             gs.lifesequence,
             gs.health, gs.maxhealth,
             gs.armour, gs.armourtype,
@@ -1951,8 +1943,7 @@ namespace server
         clearteaminfo();
         if(m_teammode) autoteam();
 
-        if(m_capture) smode = &capturemode;
-        else if(m_ctf) smode = &ctfmode;
+        if(m_ctf) smode = &ctfmode;
         else if(m_collect) smode = &collectmode;
         else smode = NULL;
 
@@ -1984,7 +1975,7 @@ namespace server
     {
         if(!maprotations.inrange(curmaprotation))
         {
-            changemap("", 1);
+            changemap("", 0);
             return;
         }
         if(next) 
@@ -2192,7 +2183,6 @@ namespace server
             if(dup) continue;
 
             int damage = guns[gun].damage;
-            if(gs.quadmillis) damage *= 4;
             damage = int(damage*(1-h.dist/EXP_DISTSCALE/guns[gun].exprad));
             if(target==ci) damage /= EXP_SELFDAMDIV;
             dodamage(target, ci, damage, gun, h.dir);
@@ -2215,7 +2205,7 @@ namespace server
                 int(from.x*DMF), int(from.y*DMF), int(from.z*DMF),
                 int(to.x*DMF), int(to.y*DMF), int(to.z*DMF),
                 ci->ownernum);
-        gs.shotdamage += guns[gun].damage*(gs.quadmillis ? 4 : 1)*guns[gun].rays;
+        gs.shotdamage += guns[gun].damage*guns[gun].rays;
         switch(gun)
         {
             case GUN_RL: gs.rockets.add(id); break;
@@ -2232,7 +2222,6 @@ namespace server
                     totalrays += h.rays;
                     if(totalrays>maxrays) continue;
                     int damage = h.rays*guns[gun].damage;
-                    if(gs.quadmillis) damage *= 4;
                     dodamage(target, ci, damage, gun, h.dir);
                 }
                 break;
@@ -2284,7 +2273,6 @@ namespace server
         loopv(clients)
         {
             clientinfo *ci = clients[i];
-            if(curtime>0 && ci->state.quadmillis) ci->state.quadmillis = max(ci->state.quadmillis-curtime, 0);
             flushevents(ci, gamemillis);
         }
     }
@@ -2324,17 +2312,12 @@ namespace server
                 {
                     loopv(sents) if(sents[i].spawntime) // spawn entities when timer reached
                     {
-                        int oldtime = sents[i].spawntime;
                         sents[i].spawntime -= curtime;
                         if(sents[i].spawntime<=0)
                         {
                             sents[i].spawntime = 0;
                             sents[i].spawned = true;
                             sendf(-1, 1, "ri2", N_ITEMSPAWN, i);
-                        }
-                        else if(sents[i].spawntime<=10000 && oldtime>10000 && (sents[i].type==I_QUAD || sents[i].type==I_BOOST))
-                        {
-                            sendf(-1, 1, "ri2", N_ANNOUNCE, sents[i].type);
                         }
                     }
                 }
@@ -2732,7 +2715,7 @@ namespace server
         ci->state.lasttimeplayed = lastmillis;
 
         const char *worst = m_teammode ? chooseworstteam(NULL, ci) : NULL;
-        copystring(ci->team, worst ? worst : "good", MAXTEAMLEN+1);
+        copystring(ci->team, worst ? worst : "azul", MAXTEAMLEN+1);
 
         sendwelcome(ci);
         if(restorescore(ci)) sendresume(ci);
@@ -3498,7 +3481,6 @@ namespace server
                 break;
                      
             #define PARSEMESSAGES 1
-            #include "capture.h"
             #include "ctf.h"
             #include "collect.h"
             #undef PARSEMESSAGES

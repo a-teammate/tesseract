@@ -9,4 +9,4 @@ IF /I "%PROCESSOR_ARCHITEW6432%" == "amd64" (
     set TESS_BIN=bin64
 )
 
-start %TESS_BIN%\tesseract.exe "-q$HOME\My Games\Tesseract" -ktesseract -ksauerbraten\packages -glog.txt %*
+start %TESS_BIN%\tesseract.exe "-q$HOME\My Games\Tesseract" -glog.txt %*

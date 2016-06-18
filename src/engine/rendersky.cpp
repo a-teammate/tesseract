@@ -9,7 +9,7 @@ void loadsky(const char *basename, Texture *texs[6])
     {
         const char *side = cubemapsides[i].name;
         string name;
-        copystring(name, makerelpath("packages", basename));
+        copystring(name, makerelpath("media/skybox", basename));
         if(wildcard)
         {
             char *chop = strchr(name, '*');
@@ -36,7 +36,7 @@ Texture *loadskyoverlay(const char *basename)
 {
     const char *ext = strrchr(basename, '.'); 
     string name;
-    copystring(name, makerelpath("packages", basename));
+    copystring(name, makerelpath("media/skybox", basename));
     Texture *t = notexture;
     if(ext) t = textureload(name, 0, true, false);
     else
@@ -404,7 +404,7 @@ void drawskybox(int farplane)
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
     }
-   
+    
     if(ldrscale < 1 && (skyboxoverbrightmin != 1 || (skyboxoverbright > 1 && skyboxoverbrightthreshold < 1)))
     {
         SETSHADER(skyboxoverbright);

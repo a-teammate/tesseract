@@ -2694,7 +2694,7 @@ ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
         bool redundant = false;
         loopj(i) if(!strcmp(files[j], file)) { redundant = true; break; }
         if(redundant) delete[] files.removeunordered(i);
-    } 
+    }
     loopv(files)
     {
         char *file = files[i];

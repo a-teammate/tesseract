@@ -116,7 +116,7 @@ namespace ai
         {
             if(lastmillis >= d->ai->lastaimrnd)
             {
-                const int aiskew[NUMGUNS] = { 1, 10, 50, 5, 20, 1, 100, 10, 10, 10, 1, 1 };
+                const int aiskew[NUMGUNS] = { 1, 10, 50, 5, 20, 1, 100 };
                 #define rndaioffset(r) ((rnd(int(r*aiskew[d->gunselect]*2)+1)-(r*aiskew[d->gunselect]))*(1.f/float(max(d->skill, 1))))
                 loopk(3) d->ai->aimrnd[k] = rndaioffset(e->radius);
                 int dur = (d->skill+10)*10;
@@ -412,8 +412,6 @@ namespace ai
             case I_HEALTH:
                 if(d->health < min(d->skill, 75)) score = 1e3f;
                 break;
-            case I_QUAD: score = 1e3f; break;
-            case I_BOOST: score = 1e2f; break;
             case I_GREENARMOUR: case I_YELLOWARMOUR:
             {
                 int atype = A_GREEN + e.type - I_GREENARMOUR;
@@ -495,7 +493,7 @@ namespace ai
             {
                 static vector<int> nearby;
                 nearby.setsize(0);
-                findents(I_SHELLS, I_QUAD, false, d->feetpos(), vec(32, 32, 24), nearby);
+                findents(I_SHELLS, I_YELLOWARMOUR, false, d->feetpos(), vec(32, 32, 24), nearby);
                 loopv(nearby)
                 {
                     int id = nearby[i];
@@ -594,7 +592,7 @@ namespace ai
 
     void itemspawned(int ent)
     {
-        if(entities::ents.inrange(ent) && entities::ents[ent]->type >= I_SHELLS && entities::ents[ent]->type <= I_QUAD)
+        if(entities::ents.inrange(ent) && entities::ents[ent]->type >= I_SHELLS && entities::ents[ent]->type <= I_YELLOWARMOUR)
         {
             loopv(players) if(players[i] && players[i]->ai && players[i]->aitype == AI_BOT && players[i]->canpickup(entities::ents[ent]->type))
             {
@@ -602,8 +600,8 @@ namespace ai
                 bool wantsitem = false;
                 switch(entities::ents[ent]->type)
                 {
-                    case I_BOOST: case I_HEALTH: wantsitem = badhealth(d); break;
-                    case I_GREENARMOUR: case I_YELLOWARMOUR: case I_QUAD: break;
+                    case I_HEALTH: wantsitem = badhealth(d); break;
+                    case I_GREENARMOUR: case I_YELLOWARMOUR: break;
                     default:
                     {
                         itemstat &is = itemstats[entities::ents[ent]->type-I_SHELLS];
@@ -1240,7 +1238,6 @@ namespace ai
                 if(d->ragdoll) cleanragdoll(d);
                 moveplayer(d, 10, true);
                 if(allowmove && !b.idle) timeouts(d, b);
-                if(d->quadmillis) entities::checkquad(curtime, d);
 				entities::checkitems(d);
 				if(cmode) cmode->checkitems(d);
             }

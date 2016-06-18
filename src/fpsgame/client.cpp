@@ -72,7 +72,7 @@ namespace game
             {
                 if(!alive++) 
                 {
-                    settexture(isteam(d->team, player1->team) ? "packages/hud/blip_blue_alive.png" : "packages/hud/blip_red_alive.png");
+                    settexture(isteam(d->team, player1->team) ? "media/hud/blip_blue_alive.png" : "media/hud/blip_red_alive.png");
                     gle::defvertex(2);
                     gle::deftexcoord0();
                     gle::begin(GL_QUADS);
@@ -88,7 +88,7 @@ namespace game
             {
                 if(!dead++) 
                 {
-                    settexture(isteam(d->team, player1->team) ? "packages/hud/blip_blue_dead.png" : "packages/hud/blip_red_dead.png");
+                    settexture(isteam(d->team, player1->team) ? "media/hud/blip_blue_dead.png" : "media/hud/blip_red_dead.png");
                     gle::defvertex(2);
                     gle::deftexcoord0();
                     gle::begin(GL_QUADS);
@@ -99,19 +99,16 @@ namespace game
         if(dead) gle::end();
     }
         
-    #include "capture.h"
     #include "ctf.h"
     #include "collect.h"
 
     clientmode *cmode = NULL;
-    captureclientmode capturemode;
     ctfclientmode ctfmode;
     collectclientmode collectmode;
 
     void setclientmode()
     {
-        if(m_capture) cmode = &capturemode;
-        else if(m_ctf) cmode = &ctfmode;
+        if(m_ctf) cmode = &ctfmode;
         else if(m_collect) cmode = &collectmode;
         else cmode = NULL;
     }
@@ -242,7 +239,7 @@ namespace game
         if(editmode) return true;
         if(connected && multiplayer(false) && !m_edit)
         {
-            conoutf(CON_ERROR, "editing in multiplayer requires coop edit mode (1)");
+            conoutf(CON_ERROR, "editing in multiplayer requires coop edit mode");
             return false;
         }
         if(identexists("allowedittoggle") && !execute("allowedittoggle"))
@@ -533,13 +530,8 @@ namespace game
     ICOMMANDS("m_noitems", "i", (int *mode), { int gamemode = *mode; intret(m_noitems); });
     ICOMMANDS("m_noammo", "i", (int *mode), { int gamemode = *mode; intret(m_noammo); });
     ICOMMANDS("m_insta", "i", (int *mode), { int gamemode = *mode; intret(m_insta); });
-    ICOMMANDS("m_tactics", "i", (int *mode), { int gamemode = *mode; intret(m_tactics); });
     ICOMMANDS("m_efficiency", "i", (int *mode), { int gamemode = *mode; intret(m_efficiency); });
-    ICOMMANDS("m_capture", "i", (int *mode), { int gamemode = *mode; intret(m_capture); });
-    ICOMMANDS("m_regencapture", "i", (int *mode), { int gamemode = *mode; intret(m_regencapture); });
     ICOMMANDS("m_ctf", "i", (int *mode), { int gamemode = *mode; intret(m_ctf); });
-    ICOMMANDS("m_protect", "i", (int *mode), { int gamemode = *mode; intret(m_protect); });
-    ICOMMANDS("m_hold", "i", (int *mode), { int gamemode = *mode; intret(m_hold); });
     ICOMMANDS("m_collect", "i", (int *mode), { int gamemode = *mode; intret(m_collect); });
     ICOMMANDS("m_teammode", "i", (int *mode), { int gamemode = *mode; intret(m_teammode); });
     ICOMMANDS("m_demo", "i", (int *mode), { int gamemode = *mode; intret(m_demo); });
@@ -557,13 +549,13 @@ namespace game
     }
     void changemap(const char *name)
     {
-        changemap(name, m_valid(nextmode) ? nextmode : (remote ? 0 : 1));
+        changemap(name, m_valid(nextmode) ? nextmode : (remote ? 1 : 0));
     }
     ICOMMAND(map, "s", (char *name), changemap(name));
 
     void forceedit(const char *name)
     {
-        changemap(name, 1);
+        changemap(name, 0);
     }
 
     void newmap(int size)
@@ -1146,8 +1138,6 @@ namespace game
             else d->state = getint(p);
             d->frags = getint(p);
             d->flags = getint(p);
-            if(d==player1) getint(p);
-            else d->quadmillis = getint(p);
         }
         d->lifesequence = getint(p);
         d->health = getint(p);
@@ -1760,18 +1750,9 @@ namespace game
             }
 
             #define PARSEMESSAGES 1
-            #include "capture.h"
             #include "ctf.h"
             #include "collect.h"
             #undef PARSEMESSAGES
-
-            case N_ANNOUNCE:
-            {
-                int t = getint(p);
-                if     (t==I_QUAD)  { playsound(S_V_QUAD10, NULL, NULL, 0, 0, 0, -1, 0, 3000);  conoutf(CON_GAMEINFO, "\f2quad damage will spawn in 10 seconds!"); }
-                else if(t==I_BOOST) { playsound(S_V_BOOST10, NULL, NULL, 0, 0, 0, -1, 0, 3000); conoutf(CON_GAMEINFO, "\f2+10 health will spawn in 10 seconds!"); }
-                break;
-            }
 
             case N_NEWMAP:
             {
@@ -1858,7 +1839,7 @@ namespace game
                 string oldname;
                 copystring(oldname, getclientmap());
                 defformatstring(mname)("getmap_%d", lastmillis);
-                defformatstring(fname)("packages/base/%s.ogz", mname);
+                defformatstring(fname)("media/map/%s.ogz", mname);
                 stream *map = openrawfile(path(fname), "wb");
                 if(!map) return;
                 conoutf("received map");
@@ -1946,7 +1927,7 @@ namespace game
         conoutf("sending map...");
         defformatstring(mname)("sendmap_%d", lastmillis);
         save_world(mname, true);
-        defformatstring(fname)("packages/base/%s.ogz", mname);
+        defformatstring(fname)("media/map/%s.ogz", mname);
         stream *map = openrawfile(path(fname), "rb");
         if(map)
         {

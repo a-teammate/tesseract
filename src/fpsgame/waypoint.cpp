@@ -601,11 +601,11 @@ namespace ai
             extentity &e = *entities::ents[i];
             switch(e.type)
             {
-                case PLAYERSTART: case TELEPORT: case JUMPPAD: case FLAG: case BASE:
+                case PLAYERSTART: case TELEPORT: case JUMPPAD: case FLAG:
                     addwaypoint(e.o);
                     break;
                 default:
-                    if(e.type >= I_SHELLS && e.type <= I_QUAD) addwaypoint(e.o);
+                    if(e.type >= I_SHELLS && e.type <= I_YELLOWARMOUR) addwaypoint(e.o);
                     break;
             }
         }
@@ -666,7 +666,7 @@ namespace ai
 
         string pakname, mapname, cfgname;
         getmapfilenames(mname, NULL, pakname, mapname, cfgname);
-        formatstring(wptname)("packages/%s.wpt", mapname);
+        formatstring(wptname)("media/%s.wpt", mapname);
         path(wptname);
         return true;
     }

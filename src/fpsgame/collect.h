@@ -1,7 +1,7 @@
 #ifndef PARSEMESSAGES
 
-#define collectteambase(s) (!strcmp(s, "good") ? 1 : (!strcmp(s, "evil") ? 2 : 0))
-#define collectbaseteam(i) (i==1 ? "good" : (i==2 ? "evil" : NULL))
+#define collectteambase(s) (!strcmp(s, "azul") ? 1 : (!strcmp(s, "rojo") ? 2 : 0))
+#define collectbaseteam(i) (i==1 ? "azul" : (i==2 ? "rojo" : NULL))
 
 #ifdef SERVMODE
 struct collectservmode : servmode
@@ -430,7 +430,7 @@ struct collectclientmode : clientmode
     void drawbaseblip(fpsent *d, float x, float y, float s, int i)
     {
         base &b = bases[i];
-        settexture(b.team==collectteambase(player1->team) ? "packages/hud/blip_blue.png" : "packages/hud/blip_red.png", 3);
+        settexture(b.team==collectteambase(player1->team) ? "media/hud/blip_blue.png" : "media/hud/blip_red.png", 3);
         drawblip(d, x, y, s, b.o);
     }
 
@@ -443,7 +443,7 @@ struct collectclientmode : clientmode
     {
         if(d->state == CS_ALIVE && d->tokens > 0)
         {
-            int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
+            int x = HICON_X + 3*HICON_STEP;
             pushhudmatrix();
             hudmatrix.scale(2, 2, 1);
             flushhudmatrix();
@@ -461,10 +461,10 @@ struct collectclientmode : clientmode
         if(minimapalpha >= 1) glEnable(GL_BLEND);
         gle::colorf(1, 1, 1);
         float margin = 0.04f, roffset = s*margin, rsize = s + 2*roffset;
-        settexture("packages/hud/radar.png", 3);
+        settexture("media/hud/radar.png", 3);
         drawradar(x - roffset, y - roffset, rsize);
         #if 0
-        settexture("packages/hud/compass.png", 3);
+        settexture("media/hud/compass.png", 3);
         pushhudmatrix();
         hudmatrix.translate(x - roffset + 0.5f*rsize, y - roffset + 0.5f*rsize, 0);
         hudmatrix.rotate_around_z((camera1->yaw + 180)*-RAD);
@@ -479,7 +479,7 @@ struct collectclientmode : clientmode
             drawbaseblip(d, x, y, s, i);
         }
         int team = collectteambase(d->team);
-        settexture(team == collectteambase(player1->team) ? "packages/hud/blip_red_skull.png" : "packages/hud/blip_blue_skull.png", 3);
+        settexture(team == collectteambase(player1->team) ? "media/hud/blip_red_skull.png" : "media/hud/blip_blue_skull.png", 3);
         loopv(players)
         {
             fpsent *o = players[i];

@@ -94,7 +94,7 @@ VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
 
 void writeinitcfg()
 {
-    stream *f = openutf8file("init.cfg", "w");
+    stream *f = openutf8file("config/init.cfg", "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
@@ -193,30 +193,26 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         gle::deftexcoord0();
 
         gle::colorf(1, 1, 1);
-        settexture("data/background.png", 0);
+        settexture("media/interface/background.png", 0);
         float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
         bgquad(0, 0, w, h, 0, 0, bu, bv);
+
         glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        settexture("media/interface/shadow.png", 3);
+		bgquad(0, 0, w, h);
+
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-#if 0
-        settexture("<premul>data/background_detail.png", 0);
-        float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
-        bgquad(0, 0, w, h, 0, 0, du, dv);
-        settexture("<premul>data/background_decal.png", 3);
-        loopj(numdecals)
-        {
-            float hsz = decals[j].size, hx = clamp(decals[j].x, hsz, w-hsz), hy = clamp(decals[j].y, hsz, h-hsz), side = decals[j].side;
-            bgquad(hx-hsz, hy-hsz, 2*hsz, 2*hsz, side, 0, 1-2*side, 1); 
-        }
-#endif
+
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>data/logo_1024.png" :*/ "<premul>data/logo.png", 3);
+        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>media/interface/logo_1024.png" : "<premul>media/interface/logo.png", 3);
         bgquad(lx, ly, lw, lh);
 
         float bh = 0.1f*min(w, h), bw = bh*2,
               bx = w - 1.1f*bw, by = h - 1.1f*bh;
-        settexture("<premul>data/cube2badge.png", 3);
+        settexture("<premul>media/interface/cube2badge.png", 3);
         bgquad(bx, by, bw, bh);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -260,7 +256,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                 pophudmatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }        
-            settexture("data/mapshot_frame.png", 3);
+            settexture("media/interface/mapshot_frame.png", 3);
             bgquad(x, y, sz, sz);
             if(mapname)
             {
@@ -334,16 +330,16 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
     gle::colorf(1, 1, 1);
 
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     float fh = 0.075f*min(w, h), fw = fh*10,
           fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
           fy = renderedframe ? fh/4 : h - fh*1.5f,
           fu1 = 0/512.0f, fu2 = 511/512.0f,
           fv1 = 0/64.0f, fv2 = 52/64.0f;
-    settexture("data/loading_frame.png", 3);
+    settexture("media/interface/loading_frame.png", 3);
     bgquad(fx, fy, fw, fh, fu1, fv1, fu2-fu1, fv2-fv1);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
           bx = fx + fw*17/511.0f, by = fy + fh*16/52.0f,
@@ -354,7 +350,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
           ex = bx+sw + max(mw*bar, fw*7/511.0f);
     if(bar > 0)
     {
-        settexture("data/loading_bar.png", 3);
+        settexture("media/interface/loading_bar.png", 3);
         bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
         bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
         bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
@@ -383,7 +379,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        settexture("data/mapshot_frame.png", 3);
+        settexture("media/interface/mapshot_frame.png", 3);
         bgquad(x, y, sz, sz);
         glDisable(GL_BLEND);
     }
@@ -651,17 +647,17 @@ void resetgl()
     extern void reloadshaders();
     inbetweenframes = false;
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("<premul>data/logo.png") ||
-       !reloadtexture("<premul>data/logo_1024.png") || 
-       !reloadtexture("<premul>data/cube2badge.png") ||
-       !reloadtexture("data/background.png") ||
+       !reloadtexture("<premul>media/interface/logo.png") ||
+       !reloadtexture("<premul>media/interface/logo_1024.png") || 
+       !reloadtexture("<premul>media/interface/cube2badge.png") ||
+       !reloadtexture("media/interface/background.png") ||
 #if 0
-       !reloadtexture("<premul>data/background_detail.png") ||
-       !reloadtexture("<premul>data/background_decal.png") ||
+       !reloadtexture("<premul>media/interface/background_detail.png") ||
+       !reloadtexture("<premul>media/interface/background_decal.png") ||
 #endif
-       !reloadtexture("data/mapshot_frame.png") ||
-       !reloadtexture("data/loading_frame.png") ||
-       !reloadtexture("data/loading_bar.png"))
+       !reloadtexture("media/interface/mapshot_frame.png") ||
+       !reloadtexture("media/interface/loading_frame.png") ||
+       !reloadtexture("media/interface/loading_bar.png"))
         fatal("failed to reload core texture");
     reloadfonts();
     inbetweenframes = true;
@@ -1058,7 +1054,7 @@ int main(int argc, char **argv)
 			}
         }
     }
-    execfile("init.cfg", false);
+    execfile("config/init.cfg", false);
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
@@ -1084,7 +1080,7 @@ int main(int argc, char **argv)
             case 'f': /* compat, ignore */ break; 
             case 'l': 
             {
-                char pkgdir[] = "packages/"; 
+                char pkgdir[] = "media/"; 
                 load = strstr(path(&argv[i][2]), path(pkgdir)); 
                 if(load) load += sizeof(pkgdir)-1; 
                 else load = &argv[i][2]; 
@@ -1134,12 +1130,12 @@ int main(int argc, char **argv)
     logoutf("init: gl");
     gl_checkextensions();
     gl_init(scr_w, scr_h);
-    notexture = textureload("packages/textures/notexture.png");
+    notexture = textureload("media/texture/notexture.png");
     if(!notexture) fatal("could not find core textures");
 
     logoutf("init: console");
-    if(!execfile("data/stdlib.cfg", false)) fatal("cannot find data files (you are running from the wrong folder, try .bat file in the main folder)");   // this is the first file we load.
-    if(!execfile("data/font.cfg", false)) fatal("cannot find font definitions");
+    if(!execfile("config/stdlib.cfg", false)) fatal("cannot find data files (you are running from the wrong folder, try .bat file in the main folder)");   // this is the first file we load.
+    if(!execfile("config/font.cfg", false)) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
     inbetweenframes = true;
@@ -1153,11 +1149,11 @@ int main(int argc, char **argv)
     initsound();
 
     logoutf("init: cfg");
-    execfile("data/keymap.cfg");
-    execfile("data/stdedit.cfg");
-    execfile("data/menus.cfg");
-    execfile("data/sounds.cfg");
-    execfile("data/brush.cfg");
+    execfile("config/keymap.cfg");
+    execfile("config/stdedit.cfg");
+    execfile("config/menus.cfg");
+    execfile("config/sounds.cfg");
+    execfile("config/brush.cfg");
     execfile("mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
     
@@ -1176,7 +1172,7 @@ int main(int argc, char **argv)
 
     initing = INIT_GAME;
     string gamecfgname;
-    copystring(gamecfgname, "data/game_");
+    copystring(gamecfgname, "config/game_");
     concatstring(gamecfgname, game::gameident());
     concatstring(gamecfgname, ".cfg");
     execfile(gamecfgname);
