@@ -1,0 +1,18 @@
+*.o
+*.gch
+/.idea
+/.project
+/.cproject
+.*.sw*
+
+bin
+Debug
+Release
+Profile
+
+
+
+# Runtime data
+pids
+*.pid
+*.seed

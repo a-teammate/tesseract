@@ -91,6 +91,8 @@ void cleanupbloom()
     lasthdraccum = 0;
 }
 
+// bloom //////
+
 extern int ao, aotaps, aoreduce, aoreducedepth, aonoise, aobilateral, aobilateralupscale, aopackdepth, aodepthformat, aoprec, aoderivnormal;
 
 static Shader *bilateralshader[2] = { NULL, NULL };
@@ -370,6 +372,8 @@ void renderao()
     endtimer(aotimer);
 }
 
+/// Ambient obscurance /////
+
 void cleanupscale()
 {
     loopi(2) if(scalefbo[i]) { glDeleteFramebuffers_(1, &scalefbo[i]); scalefbo[i] = 0; }
@@ -444,6 +448,8 @@ void doscale(GLuint outfbo)
 
     endtimer(scaletimer);
 }
+
+// some kind of adaptive framebuffer scale? O.O nice! /////////
 
 VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(gdepthformat, 1, 0, 0);
@@ -731,6 +737,8 @@ void bindgdepth()
     }
 }
 
+/// multi sample gbuffer setting up /////
+
 void setupgbuffer()
 {
     int sw = renderw, sh = renderh;
@@ -935,6 +943,7 @@ void resolvemsaacolor(int w = vieww, int h = viewh)
 
     endtimer(resolvetimer);
 }
+/// msaa again
 
 FVAR(bloomthreshold, 1e-3f, 0.8f, 1e3f);
 FVARP(bloomscale, 0, 1.0f, 1e3f);
@@ -1302,6 +1311,8 @@ done:
     endtimer(hdrtimer);
 }
 
+/// HDR / bloom again /////
+
 VAR(debugdepth, 0, 0, 1);
 
 void viewdepth()
@@ -1352,6 +1363,7 @@ void viewrefract()
     glBindTexture(GL_TEXTURE_RECTANGLE, refracttex);
     debugquad(0, 0, w, h, 0, 0, gw, gh);
 }
+/// debug views: create different method to handle all those
 
 #define RH_MAXSPLITS 4
 #define RH_MAXGRID 64
@@ -1499,6 +1511,8 @@ FVARFR(giscale, 0, 1.5f, 1e3f, { cleardeferredlightshaders(); if(!giscale) clean
 FVARR(giaoscale, 0, 3, 1e3f);
 VARFP(gi, 0, 1, 1, { cleardeferredlightshaders(); cleanupradiancehints(); });
 
+/// global illumination ////
+
 VAR(debugrsm, 0, 0, 2);
 void viewrsm()
 {
@@ -1543,6 +1557,8 @@ void viewrh()
         gle::end();
     }
 }
+
+/// debug views again ///
 
 #define SHADOWATLAS_SIZE 4096
 
@@ -1941,6 +1957,8 @@ static shadowmapinfo *addshadowmap(ushort x, ushort y, int size, int &idx, int l
     return sm;
 }
 
+// Shadowmap backend: packing and light clipping
+
 #define CSM_MAXSPLITS 8
 
 VARF(csmmaxsize, 256, 768, 2048, clearshadowcache());
@@ -2269,6 +2287,7 @@ int calcspherersmsplits(const vec &center, float radius)
     }
     return 1;
 }
+// cascaded vs reflective map (difference? whats a reflective one?)
 
 struct radiancehints
 {
@@ -2364,6 +2383,8 @@ bool useradiancehints()
     return !sunlight.iszero() && csmshadowmap && gi && giscale && gidist;
 }
 
+// global illumination
+
 FVAR(avatarshadowdist, 0, 12, 100);
 FVAR(avatarshadowbias, 0, 8, 100);
 VARF(avatarshadowstencil, 0, 1, 2, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
@@ -2391,6 +2412,8 @@ void disableavatarmask()
         glDisable(GL_STENCIL_TEST);
     }
 }
+
+// avatar rendering: UI?
 
 VAR(forcespotlights, 1, 0, 0);
 
@@ -2483,6 +2506,8 @@ FVAR(volprefilter, 0, 4, 1e3f);
 FVAR(voldistclamp, 0, 0.99f, 2);
 CVAR1R(volcolour, 0x808080);
 FVARR(volscale, 0, 1, 16);
+
+// volumetric rendering
 
 static Shader *deferredlightshader = NULL, *deferredminimapshader = NULL, *deferredmsaapixelshader = NULL, *deferredmsaasampleshader = NULL;
 

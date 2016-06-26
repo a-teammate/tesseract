@@ -1059,6 +1059,8 @@ void gl_checkextensions()
 
 ICOMMAND(glext, "s", (char *ext), intret(hasext(ext) ? 1 : 0));
 
+/// Until here: Check extensions
+
 struct timer
 {
     enum { MAXQUERY = 4 };
@@ -1182,6 +1184,8 @@ void printtimers(int conw, int conh)
     if(totalmillis - lastprint >= 200) lastprint = totalmillis;
 }
 
+/// Until here: timers
+
 void gl_resize()
 {
     gl_setupframe();
@@ -1216,6 +1220,7 @@ void gl_init()
 
     gl_resize();
 }
+// Initialisation stuff
 
 VAR(wireframe, 0, 0, 1);
 
@@ -1274,6 +1279,8 @@ void setcamprojmatrix(bool init = true, bool flush = false)
     if(flush && Shader::lastshader) Shader::lastshader->flushparams();
 }
 
+/// Camera updates
+
 matrix4 hudmatrix, hudmatrixstack[64];
 int hudmatrixpos = 0;
 
@@ -1321,6 +1328,8 @@ void pushhudtranslate(float tx, float ty, float sx, float sy)
     if(sy) hudmatrix.scale(sx, sy, 1);
     flushhudmatrix();
 }
+
+// legacy UI stuff
 
 int vieww = -1, viewh = -1;
 float curfov, curavatarfov, fovy, aspect;
@@ -1508,6 +1517,8 @@ matrix4 cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, in
 
 FVAR(nearplane, 0.01f, 0.54f, 2.0f);
 
+// camera updates again
+
 vec calcavatarpos(const vec &pos, float dist)
 {
     vec eyepos;
@@ -1540,6 +1551,8 @@ void renderavatar()
     projmatrix = oldprojmatrix;
     setcamprojmatrix(false);
 }
+
+// old UI stuff again..
 
 FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);
 FVAR(polygonoffsetunits, -1e4f, -3.0f, 1e4f);
@@ -1755,6 +1768,7 @@ bool calcspotscissor(const vec &origin, float radius, const vec &dir, int spot, 
     sz2 = min(sz2, 1.0f);
     return true;
 }
+// scissors: clipping?
 
 static GLuint screenquadvbo = 0;
 
@@ -1785,6 +1799,7 @@ void screenquad()
     gle::disablevertex();
     gle::clearvbo();
 }
+
 
 static LocalShaderParam screentexcoord[2] = { LocalShaderParam("screentexcoord0"), LocalShaderParam("screentexcoord1") };
 
@@ -1845,6 +1860,8 @@ void debugquad(float x, float y, float w, float h, float tx, float ty, float tw,
 {
     HUDQUAD(x, y, x+w, y+h, tx, ty+th, tx+tw, ty);
 }
+
+// screenquads (some need to stay for new UI, gle intermediate mode too?)
 
 VARR(fog, 16, 4000, 1000024);
 CVARR(fogcolour, 0x8099B3);
@@ -1995,6 +2012,8 @@ void drawfogoverlay(int fogmat, float fogbelow, float fogblend, int abovemat)
 
     glDisable(GL_BLEND);
 }
+
+/// fog rendering
 
 int drawtex = 0;
 
@@ -2156,6 +2175,7 @@ void drawminimap()
 
     glViewport(0, 0, hudw, hudh);
 }
+/// minimap generation and rendering: can rendering go to new ui? either send drawminimap(pos) or d
 
 void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side, bool onlysky)
 {
@@ -2259,6 +2279,7 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
     drawtex = 0;
 }
 
+// cubemap??
 VAR(modelpreviewfov, 10, 20, 100);
 VAR(modelpreviewpitch, -90, -15, 90);
 
@@ -2354,6 +2375,8 @@ vec calcmodelpreviewpos(const vec &radius, float &yaw)
     float dist = max(radius.magnitude2()/aspect, radius.magnitude())/sinf(fovy/2*RAD);
     return vec(0, dist, 0).rotate_around_x(camera1->pitch*RAD);
 }
+
+// UI backend
 
 int xtraverts, xtravertsva;
 
@@ -2468,10 +2491,13 @@ void gl_drawview()
     if(scalefbo) doscale();
 }
 
+
 void gl_drawmainmenu()
 {
     renderbackground(NULL, NULL, NULL, NULL, true);
 }
+
+// main rendering routines
 
 VARNP(damagecompass, usedamagecompass, 0, 1, 1);
 VARP(damagecompassfade, 1, 1000, 10000);
@@ -2573,6 +2599,8 @@ void drawdamagescreen(int w, int h)
     hudquad(0, 0, w, h);
 }
 
+// damage screen
+
 VAR(hidestats, 0, 0, 1);
 VAR(hidehud, 0, 0, 1);
 
@@ -2661,6 +2689,8 @@ void drawcrosshair(int w, int h)
 
     hudquad(x, y, chsize, chsize);
 }
+
+// crosshair
 
 VARP(wallclock, 0, 0, 1);
 VARP(wallclock24, 0, 0, 1);
@@ -2785,6 +2815,8 @@ void gl_drawhud()
     }
 }
 
+// legacy hud rendering
+
 int renderw = 0, renderh = 0, hudw = 0, hudh = 0;
 
 void gl_setupframe(bool force)
@@ -2820,4 +2852,5 @@ void cleanupgl()
     cleanupscreenquad();
     gle::cleanup();
 }
+// main rendering routines again
 
