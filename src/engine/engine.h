@@ -328,10 +328,7 @@ extern matrix4 worldmatrix, screenmatrix;
 
 extern int gw, gh, gdepthformat, ghasstencil;
 extern GLuint gdepthtex, gcolortex, gnormaltex, gglowtex, gdepthrb, gstencilrb;
-extern int msaasamples, msaalight;
-extern GLuint msdepthtex, mscolortex, msnormaltex, msglowtex, msdepthrb, msstencilrb;
-extern vector<vec2> msaapositions;
-enum { AA_UNUSED = 0, AA_LUMA, AA_MASKED, AA_SPLIT, AA_SPLIT_LUMA, AA_SPLIT_MASKED };
+enum { AA_UNUSED = 0, AA_LUMA, AA_MASKED};
 
 extern void cleanupgbuffer();
 extern void initgbuffer();
@@ -367,7 +364,6 @@ extern matrix4 nojittermatrix;
 extern void setupaa(int w, int h);
 extern void jitteraa();
 extern bool maskedaa();
-extern bool multisampledaa();
 extern void setaavelocityparams(GLenum tmu = GL_TEXTURE0);
 extern void setaamask(bool val);
 extern void enableaamask(int stencil = 0);

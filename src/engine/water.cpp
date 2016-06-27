@@ -87,8 +87,7 @@ void renderwaterfog(int mat, float surface)
     glEnable(GL_BLEND);
 
     glActiveTexture_(GL_TEXTURE9);
-    if(msaalight) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
-    else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
+    glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
     glActiveTexture_(GL_TEXTURE0);
 
     vec p[4] =

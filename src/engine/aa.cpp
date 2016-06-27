@@ -55,17 +55,14 @@ void cleanuptqaa()
 void setaavelocityparams(GLenum tmu)
 {
     glActiveTexture_(tmu);
-    if(msaalight) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
-    else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
+    glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
     glActiveTexture_(++tmu);
-    if(msaasamples) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msnormaltex);
-    else glBindTexture(GL_TEXTURE_RECTANGLE, gnormaltex);
+    glBindTexture(GL_TEXTURE_RECTANGLE, gnormaltex);
     glActiveTexture_(GL_TEXTURE0);
 
     matrix4 reproject;
     reproject.muld(tqaaframe ? tqaaprevscreenmatrix : screenmatrix, worldmatrix);
     vec2 jitter = tqaaframe&1 ? vec2(0.5f, 0.5f) : vec2(-0.5f, -0.5f);
-    if(multisampledaa()) { jitter.x *= 0.5f; jitter.y *= -0.5f; }
     if(tqaaframe) reproject.jitter(jitter.x, jitter.y);
     LOCALPARAM(reprojectmatrix, reproject);
     float maxvel = sqrtf(vieww*vieww + viewh*viewh)/tqaareproject;
@@ -99,7 +96,6 @@ void resolvetqaa(GLuint outfbo)
     glActiveTexture_(GL_TEXTURE0);
     vec4 quincunx(0, 0, 0, 0);
     if(tqaaquincunx) quincunx = tqaaframe&1 ? vec4(0.25f, 0.25f, -0.25f, -0.25f) : vec4(-0.25f, -0.25f, 0.25f, 0.25f);
-    if(multisampledaa()) { quincunx.x *= 0.5f; quincunx.y *= -0.5f; quincunx.z *= 0.5f; quincunx.w *= -0.5f; }
     LOCALPARAM(quincunx, quincunx);
     screenquad(vieww, viewh);
 
@@ -194,17 +190,16 @@ extern int smaaquality, smaagreenluma, smaacoloredge, smaadepthmask, smaastencil
 int smaatype = -1;
 static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablendweightshader = NULL, *smaaneighborhoodshader = NULL;
 
-void loadsmaashaders(bool split = false)
+void loadsmaashaders()
 {
     smaatype = tqaatype >= 0 ? tqaatype : (!smaagreenluma && !intel_texalpha_bug && !smaacoloredge ? AA_LUMA : AA_UNUSED);
-    if(split) smaatype += AA_SPLIT;
     loadhdrshaders(smaatype);
 
     string opts;
     int optslen = 0;
     if(!hasTRG) opts[optslen++] = 'a';
-    if((smaadepthmask && (!tqaa || msaalight)) || (smaastencil && ghasstencil > (msaasamples ? 1 : 0))) opts[optslen++] = 'd';
-    if(split) opts[optslen++] = 's';
+    if((smaadepthmask && !tqaa) || (smaastencil && ghasstencil > 0)) opts[optslen++] = 'd';
+    // TODO remove "s" shaders
     if(tqaa || smaagreenluma || intel_texalpha_bug) opts[optslen++] = 'g';
     if(tqaa) opts[optslen++] = 't';
     opts[optslen] = '\0';
@@ -507,12 +502,12 @@ void setupsmaa(int w, int h)
     gensmaaareadata();
     createtexture(smaaareatex, SMAA_AREATEX_WIDTH, SMAA_AREATEX_HEIGHT, smaaareadata, 3, 1, hasTRG ? GL_RG8 : GL_LUMINANCE8_ALPHA8, GL_TEXTURE_RECTANGLE, 0, 0, 0, false);
     createtexture(smaasearchtex, SMAA_SEARCHTEX_WIDTH, SMAA_SEARCHTEX_HEIGHT, smaasearchdata, 3, 0, hasTRG ? GL_R8 : GL_LUMINANCE8, GL_TEXTURE_RECTANGLE, 0, 0, 0, false);
-    bool split = multisampledaa();
-    smaasubsampleorder = split ? (msaapositions[0].x < 0.5f ? 1 : 0) : -1;
+
+    smaasubsampleorder = -1;
     smaat2x = tqaa ? 1 : 0;
-    smaas2x = split ? 1 : 0;
-    smaa4x = tqaa && split ? 1 : 0;
-    loopi(split ? 4 : 3)
+    smaas2x = 0;
+    smaa4x = 0;
+    loopi(3)
     {
         if(!smaatex[i]) glGenTextures(1, &smaatex[i]);
         if(!smaafbo[i]) glGenFramebuffers_(1, &smaafbo[i]);
@@ -526,21 +521,13 @@ void setupsmaa(int w, int h)
         }
         createtexture(smaatex[i], w, h, NULL, 3, 1, format, GL_TEXTURE_RECTANGLE);
         glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, smaatex[i], 0);
-        if(!i && split)
-        {
-            if(!smaatex[4]) glGenTextures(1, &smaatex[4]);
-            createtexture(smaatex[4], w, h, NULL, 3, 1, format, GL_TEXTURE_RECTANGLE);
-            glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_RECTANGLE, smaatex[4], 0);
-            static const GLenum drawbufs[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-            glDrawBuffers_(2, drawbufs);
-        }
-        if(!i || (smaadepthmask && (!tqaa || msaalight)) || (smaastencil && ghasstencil > (msaasamples ? 1 : 0))) bindgdepth();
+        if(!i || (smaadepthmask && !tqaa) || (smaastencil && ghasstencil > 0)) bindgdepth();
         if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             fatal("failed allocating SMAA buffer!");
     }
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
-    loadsmaashaders(split);
+    loadsmaashaders();
 }
 
 void cleanupsmaa()
@@ -580,40 +567,38 @@ void viewsmaa()
     debugquad(0, 0, w, h, 0, 0, tw, th);
 }
 
-void dosmaa(GLuint outfbo = 0, bool split = false)
+// TODO remove dead code (like depthmasking?)
+void dosmaa(GLuint outfbo = 0)
 {
     timer *smaatimer = begintimer("smaa");
 
-    int cleardepth = msaalight ? GL_DEPTH_BUFFER_BIT | (ghasstencil > 1 ? GL_STENCIL_BUFFER_BIT : 0) : 0;
-    bool depthmask = smaadepthmask && (!tqaa || msaalight),
-         stencil = smaastencil && ghasstencil > (msaasamples ? 1 : 0);
-    loop(pass, split ? 2 : 1)
+    bool depthmask = smaadepthmask && !tqaa,
+         stencil = smaastencil && ghasstencil;
     {
         glBindFramebuffer_(GL_FRAMEBUFFER, smaafbo[1]);
         if(depthmask || stencil)
         {
             glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT | (!pass ? cleardepth : 0));
+            glClear(GL_COLOR_BUFFER_BIT);
         }
         if(depthmask)
         {
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_ALWAYS);
-            float depthval = cleardepth ? 0.25f*(pass+1) : 1;
-            glDepthRange(depthval, depthval);
+            glDepthRange(1.f, 1.f); // TODO wtf, meaningful values plz
         }
         else if(stencil)
         {
             glEnable(GL_STENCIL_TEST);
-            glStencilFunc(GL_ALWAYS, 0x10*(pass+1), ~0);
+            glStencilFunc(GL_ALWAYS, 0x10, ~0);
             glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         }
         if(smaacoloredge) smaacoloredgeshader->set();
         else smaalumaedgeshader->set();
-        glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[pass ? 4 : 0]);
+        glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[0]);
         screenquad(vieww, viewh);
 
-        glBindFramebuffer_(GL_FRAMEBUFFER, smaafbo[2 + pass]);
+        glBindFramebuffer_(GL_FRAMEBUFFER, smaafbo[2]);
         if(depthmask)
         {
             glDepthFunc(GL_EQUAL);
@@ -621,15 +606,13 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
         }
         else if(stencil)
         {
-            glStencilFunc(GL_EQUAL, 0x10*(pass+1), ~0);
+            glStencilFunc(GL_EQUAL, 0x10, ~0);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
         if(depthmask || stencil) glClear(GL_COLOR_BUFFER_BIT);
         smaablendweightshader->set();
         vec4 subsamples(0, 0, 0, 0);
-        if(tqaa && split) subsamples = tqaaframe&1 ? (pass != smaasubsampleorder ? vec4(6, 4, 2, 4) : vec4(3, 5, 1, 4)) : (pass != smaasubsampleorder ? vec4(4, 6, 2, 3) : vec4(5, 3, 1, 3));
-        else if(tqaa) subsamples = tqaaframe&1 ? vec4(2, 2, 2, 0) : vec4(1, 1, 1, 0);
-        else if(split) subsamples = pass != smaasubsampleorder ? vec4(2, 2, 2, 0) : vec4(1, 1, 1, 0);
+        if(tqaa) subsamples = tqaaframe&1 ? vec4(2, 2, 2, 0) : vec4(1, 1, 1, 0);
         LOCALPARAM(subsamples, subsamples);
         glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[1]);
         glActiveTexture_(GL_TEXTURE1);
@@ -653,13 +636,6 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
     glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[0]);
     glActiveTexture_(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[2]);
-    if(split)
-    {
-        glActiveTexture_(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[4]);
-        glActiveTexture_(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_RECTANGLE, smaatex[3]);
-    }
     glActiveTexture_(GL_TEXTURE0);
     screenquad(vieww, viewh);
 
@@ -685,7 +661,6 @@ void jitteraa()
     if(!drawtex && tqaa)
     {
         vec2 jitter = tqaaframe&1 ? vec2(0.25f, 0.25f) : vec2(-0.25f, -0.25f);
-        if(multisampledaa()) { jitter.x *= 0.5f; jitter.y *= -0.5f; }
         projmatrix.jitter(jitter.x*2.0f/vieww, jitter.y*2.0f/viewh);
     }
 }
@@ -720,7 +695,7 @@ void setaamask(bool on)
 void enableaamask(int stencil)
 {
     aamask = -1;
-    aamaskstencil = !msaasamples && ghasstencil && tqaa && tqaamovemask && !drawtex ? stencil|avatarmask : -1;
+    aamaskstencil = ghasstencil && tqaa && tqaamovemask && !drawtex ? stencil|avatarmask : -1;
 }
 
 void disableaamask()
@@ -733,11 +708,6 @@ void disableaamask()
     }
 }
 
-bool multisampledaa()
-{
-    return msaasamples == 2 && (smaa ? msaalight && smaaspatial : tqaa);
-}
-
 bool maskedaa()
 {
     return tqaa && tqaamovemask;
@@ -747,9 +717,8 @@ void doaa(GLuint outfbo, void (*resolve)(GLuint, int))
 {
     if(smaa)
     {
-        bool split = multisampledaa();
         resolve(smaafbo[0], smaatype);
-        dosmaa(outfbo, split);
+        dosmaa(outfbo);
     }
     else if(fxaa) { resolve(fxaafbo, fxaatype); dofxaa(outfbo); }
     else if(tqaa) { resolve(tqaafbo[0], tqaatype); dotqaa(outfbo); }

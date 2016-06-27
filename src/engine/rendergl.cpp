@@ -1014,11 +1014,13 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_NV_copy_image extension.");
     }
 
-    extern int gdepthstencil, gstencil, glineardepth, msaadepthstencil, msaalineardepth, batchsunlight, smgather, rhrect, tqaaresolvegather;
+    extern int gdepthstencil, gstencil, glineardepth, batchsunlight, smgather, rhrect, tqaaresolvegather;
     if(amd)
     {
-        msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
-        msaadepthstencil = gdepthstencil = 1; // some older AMD GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
+        //msaalineardepth =  // TODO remove
+            glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
+        //msaadepthstencil = 
+            gdepthstencil = 1; // some older AMD GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
         if(checkseries(renderer, "Radeon HD", 4000, 5199)) amd_pf_bug = 1;
         if(glversion < 400)
         {
@@ -1037,7 +1039,7 @@ void gl_checkextensions()
             batchsunlight = 0; // causes massive slowdown in linux driver
             if(!checkmesaversion(version, 10, 0, 3))
                 mesa_texrectoffset_bug = 1; // mesa i965 driver has buggy textureOffset with texture rectangles
-            msaalineardepth = 1; // MSAA depth texture access is buggy and resolves are slow
+            // MSAA depth texture access is buggy and resolves are slow
         }
         else
         {

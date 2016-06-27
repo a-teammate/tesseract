@@ -1400,8 +1400,6 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 
         if(pass == RENDERPASS_GBUFFER)
         {
-            if(msaasamples) GLOBALPARAMF(hashid, vslot.index);
-
             if(slot.shader->type&SHADER_TRIPLANAR)
             {
                 float scale = TEX_SCALE/vslot.scale;
